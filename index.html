@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      #ui { 
+        position: absolute; bottom: 20px; left: 50%; 
+        transform: translateX(-50%); z-index: 1000; 
+      }
+      button { 
+        padding: 15px 30px; background: #FFD700; 
+        border: none; border-radius: 50px; 
+        font-weight: bold; cursor: pointer;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui">
+      <button id="playBtn">START AR EXPERIENCE</button>
+    </div>
+
+    <a-scene id="ar-scene" 
+             mindar-image="imageTargetSrc: ./targets/placeholder.mind;" 
+             color-space="sRGB" 
+             renderer="colorManagement: true, physicallyCorrectLights" 
+             vr-mode-ui="enabled: false" 
+             device-orientation-permission-ui="enabled: false">
+      
+      <a-assets>
+        <video id="ar-video" loop="true" crossorigin="anonymous" playsinline webkit-playsinline></video>
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <a-entity id="example-target" mindar-image-target="targetIndex: 0">
+        <a-video src="#ar-video" width="1" height="0.55" position="0 0 0"></a-video>
+      </a-entity>
+    </a-scene>
+
+    <script src="script.js"></script>
+  </body>
+</html>
