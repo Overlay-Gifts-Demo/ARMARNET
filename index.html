@@ -1,46 +1,73 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
-      body { margin: 0; overflow: hidden; }
-      #ui { 
-        position: absolute; bottom: 20px; left: 50%; 
-        transform: translateX(-50%); z-index: 1000; 
-      }
-      button { 
-        padding: 15px 30px; background: #FFD700; 
-        border: none; border-radius: 50px; 
-        font-weight: bold; cursor: pointer;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
-      }
+        #example-scanning-overlay {
+            display: flex; align-items: center; justify-content: center;
+            position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5); z-index: 2;
+        }
+        #example-scanning-overlay.hidden { display: none; }
+        .inner { display: flex; flex-direction: column; align-items: center; }
+        .inner .scanline { width: 100px; height: 100px; border: 5px solid #fff; border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        button { padding: 10px 20px; background: #ffeb3b; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; margin-top: 20px; }
     </style>
-  </head>
-  <body>
-    <div id="ui">
-      <button id="playBtn">START AR EXPERIENCE</button>
+</head>
+<body>
+    <div id="example-scanning-overlay">
+        <div class="inner">
+            <div class="scanline"></div>
+            <button id="startButton">START AR EXPERIENCE</button>
+        </div>
     </div>
 
-    <a-scene id="ar-scene" 
-             mindar-image="imageTargetSrc: ./targets/placeholder.mind;" 
-             color-space="sRGB" 
-             renderer="colorManagement: true, physicallyCorrectLights" 
-             vr-mode-ui="enabled: false" 
-             device-orientation-permission-ui="enabled: false">
-      
-      <a-assets>
-        <video id="ar-video" loop="true" crossorigin="anonymous" playsinline webkit-playsinline></video>
-      </a-assets>
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; showLoading: false;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+        <a-assets>
+            <video id="arVideo" loop="true" crossorigin="anonymous" playsinline webkit-playsinline></video>
+        </a-assets>
 
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-camera>
 
-      <a-entity id="example-target" mindar-image-target="targetIndex: 0">
-        <a-video src="#ar-video" width="1" height="0.55" position="0 0 0"></a-video>
-      </a-entity>
+        <a-entity id="target" mindar-image-target="targetIndex: 0">
+            <a-video src="#arVideo" width="1" height="0.55" position="0 0 0"></a-video>
+        </a-entity>
     </a-scene>
 
-    <script src="script.js"></script>
-  </body>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        // REPLACE THIS URL with your actual Google Sheet Web App URL
+        const SHEET_URL = 'https://script.google.com/macros/s/YOUR_WEB_APP_ID/exec';
+
+        async function loadVideo() {
+            try {
+                const response = await fetch(`${SHEET_URL}?id=${id}`);
+                const data = await response.json();
+                
+                // CRITICAL FIX: Looking at Column C (index 2)
+                const videoUrl = data.videoUrl; 
+
+                if (videoUrl) {
+                    const video = document.querySelector('#arVideo');
+                    video.src = videoUrl;
+                    console.log("Video loaded from Column C:", videoUrl);
+                }
+            } catch (e) {
+                console.error("Error loading AR data:", e);
+            }
+        }
+
+        document.querySelector('#startButton').addEventListener('click', () => {
+            document.querySelector('#example-scanning-overlay').classList.add('hidden');
+            const video = document.querySelector('#arVideo');
+            video.play();
+        });
+
+        if (id) { loadVideo(); }
+    </script>
+</body>
 </html>
