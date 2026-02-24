@@ -27,7 +27,7 @@
 
     <a-scene mindar-image="imageTargetSrc: ./cs0001.mind; showLoading: false;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
         <a-assets>
-            <video id="arVideo" loop="true" crossorigin="anonymous" playsinline webkit-playsinline></video>
+            <video id="arVideo" loop="true" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
         </a-assets>
 
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -40,9 +40,9 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
-        
-        // YOUR LIVE WEB APP LINK IS NOW PLACED BELOW
         const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyctxpgcYKScULcrZuy6TImucoRIfiCwfuFmy-nWNno8LtpXxpa6dzECAn3ZlLWDCleYA/exec';
+
+        const video = document.querySelector('#arVideo');
 
         async function loadVideo() {
             if (!id) return;
@@ -51,11 +51,9 @@
                 const data = await response.json();
                 
                 if (data.videoUrl) {
-                    const video = document.querySelector('#arVideo');
                     video.src = data.videoUrl;
-                    console.log("Success! Automated Video Loaded:", data.videoUrl);
-                } else {
-                    alert("No video found for ID: " + id);
+                    video.load(); // Forces the browser to prepare the video
+                    console.log("Video Source Set:", data.videoUrl);
                 }
             } catch (e) {
                 console.error("Connection Error:", e);
@@ -64,7 +62,15 @@
 
         document.querySelector('#startButton').addEventListener('click', () => {
             document.querySelector('#example-scanning-overlay').classList.add('hidden');
-            const video = document.querySelector('#arVideo');
+            // Unmuting after user interaction
+            video.muted = false;
+            video.play();
+        });
+
+        // The "Magic" fix: Force play when the marker is actually seen
+        const targetEntity = document.querySelector('#target');
+        targetEntity.addEventListener("targetFound", () => {
+            console.log("Marker Found!");
             video.play();
         });
 
