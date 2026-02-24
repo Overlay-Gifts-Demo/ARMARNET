@@ -8,13 +8,13 @@
         #example-scanning-overlay {
             display: flex; align-items: center; justify-content: center;
             position: absolute; left: 0; right: 0; top: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.5); z-index: 2;
+            background: rgba(0, 0, 0, 0.7); z-index: 2;
         }
         #example-scanning-overlay.hidden { display: none; }
         .inner { display: flex; flex-direction: column; align-items: center; }
-        .inner .scanline { width: 100px; height: 100px; border: 5px solid #fff; border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite; }
+        .inner .scanline { width: 100px; height: 100px; border: 5px solid #fff; border-radius: 50%; border-top-color: #ffeb3b; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        button { padding: 10px 20px; background: #ffeb3b; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        button { padding: 15px 30px; background: #ffeb3b; border: none; border-radius: 25px; font-weight: bold; font-size: 18px; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -25,39 +25,40 @@
         </div>
     </div>
 
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; showLoading: false;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; showLoading: false;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
         <a-assets>
             <video id="arVideo" loop="true" crossorigin="anonymous" playsinline webkit-playsinline></video>
         </a-assets>
 
-        <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-camera>
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
         <a-entity id="target" mindar-image-target="targetIndex: 0">
-            <a-video src="#arVideo" width="1" height="0.55" position="0 0 0"></a-video>
+            <a-video src="#arVideo" width="1" height="0.6" position="0 0 0"></a-video>
         </a-entity>
     </a-scene>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
-        // REPLACE THIS URL with your actual Google Sheet Web App URL
-        const SHEET_URL = 'https://script.google.com/macros/s/YOUR_WEB_APP_ID/exec';
+        
+        // YOUR LIVE WEB APP LINK IS NOW PLACED BELOW
+        const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyctxpgcYKScULcrZuy6TImucoRIfiCwfuFmy-nWNno8LtpXxpa6dzECAn3ZlLWDCleYA/exec';
 
         async function loadVideo() {
+            if (!id) return;
             try {
                 const response = await fetch(`${SHEET_URL}?id=${id}`);
                 const data = await response.json();
                 
-                // CRITICAL FIX: Looking at Column C (index 2)
-                const videoUrl = data.videoUrl; 
-
-                if (videoUrl) {
+                if (data.videoUrl) {
                     const video = document.querySelector('#arVideo');
-                    video.src = videoUrl;
-                    console.log("Video loaded from Column C:", videoUrl);
+                    video.src = data.videoUrl;
+                    console.log("Success! Automated Video Loaded:", data.videoUrl);
+                } else {
+                    alert("No video found for ID: " + id);
                 }
             } catch (e) {
-                console.error("Error loading AR data:", e);
+                console.error("Connection Error:", e);
             }
         }
 
@@ -67,7 +68,7 @@
             video.play();
         });
 
-        if (id) { loadVideo(); }
+        loadVideo();
     </script>
 </body>
 </html>
