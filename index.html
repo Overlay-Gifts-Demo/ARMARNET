@@ -41,7 +41,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
         const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyctxpgcYKScULcrZuy6TImucoRIfiCwfuFmy-nWNno8LtpXxpa6dzECAn3ZlLWDCleYA/exec';
-
         const video = document.querySelector('#arVideo');
 
         async function loadVideo() {
@@ -49,28 +48,26 @@
             try {
                 const response = await fetch(`${SHEET_URL}?id=${id}`);
                 const data = await response.json();
-                
                 if (data.videoUrl) {
                     video.src = data.videoUrl;
-                    video.load(); // Forces the browser to prepare the video
-                    console.log("Video Source Set:", data.videoUrl);
+                    video.load(); 
+                    console.log("Video Source Ready");
                 }
-            } catch (e) {
-                console.error("Connection Error:", e);
-            }
+            } catch (e) { console.error(e); }
         }
 
         document.querySelector('#startButton').addEventListener('click', () => {
             document.querySelector('#example-scanning-overlay').classList.add('hidden');
-            // Unmuting after user interaction
-            video.muted = false;
-            video.play();
+            // Prime the video
+            video.play().then(() => {
+                video.pause();
+                video.muted = false; // Prepare for sound
+            });
         });
 
-        // The "Magic" fix: Force play when the marker is actually seen
+        // Trigger play the moment the card is found
         const targetEntity = document.querySelector('#target');
         targetEntity.addEventListener("targetFound", () => {
-            console.log("Marker Found!");
             video.play();
         });
 
